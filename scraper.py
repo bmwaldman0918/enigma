@@ -25,7 +25,3 @@ def get_text_from_page(driver: webdriver.Chrome, url):
       s = ''.join(s)
       processed += [s]
   return processed
-
-d = init_driver("BEN_LAPTOP")
-url = "https://en.wikipedia.org/wiki/PageRank"
-# print(get_text_from_page(d, url))

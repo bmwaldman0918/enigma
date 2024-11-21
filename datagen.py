@@ -2,6 +2,7 @@ import string
 import random
 from python_enigma import enigma
 import json
+import scraper
 
 MIN_STR_LEN = 1
 MAX_STR_LEN = 25
@@ -44,3 +45,25 @@ def random_data_gen(strs : int):
   with open("random_data.json", mode="w") as file:
     for e in encoded:
       json.dump(e, file, indent="\t")
+
+def scraped_data_gen(urls : dict, driver):
+  all_text = []
+  for u in urls:
+    url = urls[u]
+    text = scraper.get_text_from_page(driver, url)
+    all_text += text
+    use_these = [("I", "A"), ("II", "B"), ("III", "C")]
+  encoded = encode_strings(all_text, catalog="default", stecker="AQ BJ",rotors=use_these, reflector="Reflector B", operator=True, word_length=5, stator="military")
+  with open("scraped_data.json", mode="w") as file:
+    for e in encoded:
+      json.dump(e, file, indent="\t")
+
+#d = scraper.init_driver("BEN_LAPTOP")
+urls = {}
+urls["befunge"] = "https://en.wikipedia.org/wiki/Befunge"
+urls["brainfuck"] = "https://en.wikipedia.org/wiki/Brainfuck"
+urls["fractran"] = "https://en.wikipedia.org/wiki/FRACTRAN"
+urls["intercal"] = "https://en.wikipedia.org/wiki/INTERCAL"
+urls["malbolge"] = "https://en.wikipedia.org/wiki/Malbolge"
+#scraped_data_gen(urls, d)
+random_data_gen(int(10e4))
