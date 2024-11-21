@@ -58,12 +58,15 @@ def scraped_data_gen(urls : dict, driver):
     for e in encoded:
       json.dump(e, file, indent="\t")
 
-#d = scraper.init_driver("BEN_LAPTOP")
+d = scraper.init_driver("BEN_LAPTOP")
 urls = {}
 urls["befunge"] = "https://en.wikipedia.org/wiki/Befunge"
 urls["brainfuck"] = "https://en.wikipedia.org/wiki/Brainfuck"
 urls["fractran"] = "https://en.wikipedia.org/wiki/FRACTRAN"
 urls["intercal"] = "https://en.wikipedia.org/wiki/INTERCAL"
 urls["malbolge"] = "https://en.wikipedia.org/wiki/Malbolge"
-#scraped_data_gen(urls, d)
-random_data_gen(int(10e4))
+urls["obama"] = "https://en.wikipedia.org/wiki/Barack_Obama"
+urls["churchill"] = "https://en.wikipedia.org/wiki/Winston_Churchill"
+urls["ovechkin"] = "https://en.wikipedia.org/wiki/Alexander_Ovechkin"
+scraped_data_gen(urls, d)
+#random_data_gen(int(10e4))
