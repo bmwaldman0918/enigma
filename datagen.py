@@ -43,8 +43,7 @@ def random_data_gen(strs : int):
   use_these = [("I", "A"), ("II", "B"), ("III", "C")]
   encoded = encode_strings(words, catalog="default", stecker="AQ BJ",rotors=use_these, reflector="Reflector B", operator=True, word_length=5, stator="military")
   with open("random_data.json", mode="w") as file:
-    for e in encoded:
-      json.dump(e, file, indent="\t")
+    file.write(json.dumps(encoded, indent="\t"))
 
 def scraped_data_gen(urls : dict, driver):
   all_text = []
@@ -55,8 +54,7 @@ def scraped_data_gen(urls : dict, driver):
     use_these = [("I", "A"), ("II", "B"), ("III", "C")]
   encoded = encode_strings(all_text, catalog="default", stecker="AQ BJ",rotors=use_these, reflector="Reflector B", operator=True, word_length=5, stator="military")
   with open("scraped_data.json", mode="w") as file:
-    for e in encoded:
-      json.dump(e, file, indent="\t")
+    file.write(json.dumps(encoded, indent="\t"))
 
 d = scraper.init_driver("BEN_LAPTOP")
 urls = {}
@@ -69,4 +67,4 @@ urls["obama"] = "https://en.wikipedia.org/wiki/Barack_Obama"
 urls["churchill"] = "https://en.wikipedia.org/wiki/Winston_Churchill"
 urls["ovechkin"] = "https://en.wikipedia.org/wiki/Alexander_Ovechkin"
 scraped_data_gen(urls, d)
-#random_data_gen(int(10e4))
+random_data_gen(int(10e4))
