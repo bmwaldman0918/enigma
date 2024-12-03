@@ -30,5 +30,5 @@ def get_text_from_page(driver: webdriver.Chrome, url):
       s = t.lower()
       s = [c for c in s if c in string.ascii_letters]
       s = ''.join(s)
-      processed += [pad(s)]
+      processed += [s]
   return processed
