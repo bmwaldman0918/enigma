@@ -13,7 +13,7 @@ def random_text(string_quantity : int):
   for _ in range(string_quantity):
     length = random.choice(range(MIN_STR_LEN, MAX_STR_LEN))
     s = "".join(random.choices(string.ascii_lowercase, k=length))
-    strs += [str(s)]
+    strs += [scraper.pad(str(s))]
   return strs
 
 def encode_strings(words : list, catalog, stecker, rotors, reflector, operator, word_length, stator):
