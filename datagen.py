@@ -25,8 +25,8 @@ def encode_strings(words : list, catalog, stecker, rotors, reflector, operator, 
   for word in words:
     data = {}
     machine.set_wheels("ABC")
-    data["plain"] = word
-    data["encoded"] = machine.parse(word)
+    data["plain"] = scraper.pad(word)
+    data["encoded"] = scraper.pad(machine.parse(word))
     data["catalog"] = catalog
     data["stecker"] = stecker
     data["rotors"] = rotors
