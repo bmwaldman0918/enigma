@@ -41,13 +41,10 @@ class EnigmaDataset(Dataset):
         """Helper function to load the dataset from a file."""
         self.data = ""
         with open(file_path, 'r') as f:
-            for i, line in enumerate(f, 1):
-                print(f"Processing line {i}...", flush=True)
-                self.data += line
-        try:
-            self.data = json.loads(self.data)
-        except json.JSONDecodeError as e:
-            print(f"Error parsing JSON on line {i}: {e}", flush=True)
+            try:
+              self.data = json.load(f)
+            except Exception as e:
+                print(f"{e}", flush=True)
 
     def __len__(self):
         return len(self.data)
