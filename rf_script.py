@@ -23,3 +23,16 @@ with open('model.pkl', 'wb') as f:
     pickle.dump(clf, f)
 with open('model.pkl', 'rb') as f:
   clf = pickle.load(f)
+from sklearn.metrics import accuracy_score
+y_pred = clf.predict(X_test)
+correct, incorrect = 0, 1
+for pred, real in zip(y_pred, y_test):
+  same = True
+  for a, b in zip(pred, real):
+    if a != b:
+      same = False
+  if same:
+    correct += 1
+  else:
+    incorrect += 1
+print(correct / (correct + incorrect))
