@@ -42,8 +42,9 @@ def random_data_gen(strs : int):
   # default settings from helloworld.py
   use_these = [("I", "A"), ("II", "B"), ("III", "C")]
   encoded = encode_strings(words, catalog="default", stecker="AQ BJ",rotors=use_these, reflector="Reflector B", operator=True, word_length=5, stator="military")
-  with open("random_data.json", mode="w") as file:
-    file.write(json.dumps(encoded, indent="\t"))
+  with open("random_data.json", mode="a") as file:
+    file.write(json.dumps(encoded, indent="\t") + ",")
+    file.close()
 
 def scraped_data_gen(urls : dict, driver):
   all_text = []
@@ -55,8 +56,9 @@ def scraped_data_gen(urls : dict, driver):
   encoded = encode_strings(all_text, catalog="default", stecker="AQ BJ",rotors=use_these, reflector="Reflector B", operator=True, word_length=5, stator="military")
   with open("scraped_data.json", mode="w") as file:
     file.write(json.dumps(encoded, indent="\t"))
+    file.close()
 
-d = scraper.init_driver("BEN_LAPTOP")
+#d = scraper.init_driver("BEN_LAPTOP")
 urls = {}
 urls["befunge"] = "https://en.wikipedia.org/wiki/Befunge"
 urls["brainfuck"] = "https://en.wikipedia.org/wiki/Brainfuck"
@@ -66,5 +68,7 @@ urls["malbolge"] = "https://en.wikipedia.org/wiki/Malbolge"
 urls["obama"] = "https://en.wikipedia.org/wiki/Barack_Obama"
 urls["churchill"] = "https://en.wikipedia.org/wiki/Winston_Churchill"
 urls["ovechkin"] = "https://en.wikipedia.org/wiki/Alexander_Ovechkin"
-scraped_data_gen(urls, d)
-random_data_gen(int(10e4))
+#scraped_data_gen(urls, d)
+for i in range(1000):
+  random_data_gen(int(10e3))
+  print(i)
