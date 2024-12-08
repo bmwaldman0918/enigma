@@ -13,24 +13,18 @@ import matplotlib.pyplot as plt
 # Dataset class
 class EnigmaDataset(Dataset):
     def __init__(self, file_path):
-        print("Initializing EnigmaDataset...", flush=True)
         self.data = ""
         with open(file_path, 'r') as f:
-            print(f"Loading dataset from {file_path}...", flush=True)
             for i, line in enumerate(f, 1):
                 try:
                     self.data += line
                 except json.JSONDecodeError as e:
-                    print(f"Error parsing JSON on line {i}: {e}", flush=True)
-        print("Parsing dataset into JSON format...", flush=True)
+                    print(f"Error parsing JSON on line {i}: {e}")
         self.data = json.loads(self.data)
-
-        print("Preparing character encoder...", flush=True)
         all_characters = set("".join([item['plain'] + item['encoded'] for item in self.data]))
         self.char_encoder = LabelEncoder()
         self.char_encoder.fit(list(all_characters))
         self.vocab_size = len(self.char_encoder.classes_)
-        print(f"Dataset loaded: {len(self.data)} samples, Vocab size: {self.vocab_size}", flush=True)
 
     def __len__(self):
         return len(self.data)
@@ -47,7 +41,6 @@ class EnigmaDataset(Dataset):
 class ResidualBlock(nn.Module):
     def __init__(self, hidden_dim):
         super(ResidualBlock, self).__init__()
-        print(f"Initializing ResidualBlock with hidden_dim={hidden_dim}...", flush=True)
         self.conv1 = nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, padding=1)
         self.bn1 = nn.BatchNorm1d(hidden_dim)
         self.relu = nn.ReLU()
@@ -69,7 +62,6 @@ class ResidualBlock(nn.Module):
 class ResNetDecoder(nn.Module):
     def __init__(self, vocab_size, embed_dim, hidden_dim, num_blocks, max_length):
         super(ResNetDecoder, self).__init__()
-        print(f"Initializing ResNetDecoder with embed_dim={embed_dim}, hidden_dim={hidden_dim}, num_blocks={num_blocks}...", flush=True)
         self.embedding = nn.Embedding(vocab_size, embed_dim)
         self.proj = nn.Conv1d(embed_dim, hidden_dim, kernel_size=1)
         self.res_blocks = nn.Sequential(
@@ -89,14 +81,10 @@ class ResNetDecoder(nn.Module):
 
 # Training loop
 def train_model(model, dataloader, optimizer, num_epochs, device):
-    print("Starting training loop...", flush=True)
     model.train()
     for epoch in range(num_epochs):
-        print(f"Epoch {epoch+1}/{num_epochs} started...", flush=True)
         total_loss = 0
-        for batch_idx, (encoded, plain) in enumerate(dataloader):
-            if batch_idx % 10 == 0:  # Print every 10 batches
-                print(f"Processing batch {batch_idx+1}/{len(dataloader)}...", flush=True)
+        for encoded, plain in dataloader:
             encoded = encoded.to(device)
             plain = plain.to(device)
             logits = model(encoded)
@@ -107,11 +95,10 @@ def train_model(model, dataloader, optimizer, num_epochs, device):
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-        print(f"Epoch {epoch+1}/{num_epochs} completed. Loss: {total_loss / len(dataloader):.4f}", flush=True)
+        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {total_loss / len(dataloader):.4f}")
 
 # Decode function
 def decode_word(model, encoded_word, char_encoder, device):
-    print(f"Decoding word: {encoded_word}", flush=True)
     model.eval()
     with torch.no_grad():
         encoded_ids = np.array(char_encoder.transform(list(encoded_word.replace(" ", ""))))
@@ -119,8 +106,23 @@ def decode_word(model, encoded_word, char_encoder, device):
         logits = model(input_tensor)
         predictions = torch.argmax(logits, dim=-1).squeeze(0).cpu().numpy()
         decoded_word = "".join(char_encoder.inverse_transform(predictions))
-    print(f"Decoded word: {decoded_word}", flush=True)
     return decoded_word
+
+# Plot loss
+def plot_loss_curve(training_losses, validation_losses, save_path=None):
+    epochs = range(1, len(training_losses) + 1)
+    plt.figure(figsize=(8, 6))
+    plt.plot(epochs, training_losses, label="Training Loss", marker='o')
+    plt.plot(epochs, validation_losses, label="Validation Loss", marker='x')
+    plt.title("Loss Curve")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.grid(True)
+    if save_path is None:
+        save_path = os.path.join(os.getcwd(), "loss_curve.png")
+
+    plt.savefig(save_path)
 
 # Parameters
 file_path = "/home/smadejski/mathforml/enigma/random_data.json"
@@ -132,7 +134,6 @@ num_epochs = 15
 max_length = 25
 
 # Dataset and DataLoader
-print("Initializing Dataset and DataLoader...", flush=True)
 dataset = EnigmaDataset(file_path)
 def collate_fn(batch):
     encoded, plain = zip(*batch)
@@ -140,10 +141,8 @@ def collate_fn(batch):
     plain_padded = pad_sequence(plain, batch_first=True, padding_value=0)
     return encoded_padded, plain_padded
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-print("Dataset and DataLoader ready.", flush=True)
 
 # Model, optimizer, and training
-print(f"Using device: {device}", flush=True)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = ResNetDecoder(vocab_size=dataset.vocab_size, embed_dim=embed_dim, hidden_dim=hidden_dim, num_blocks=num_blocks, max_length=max_length).to(device)
 optimizer = Adam(model.parameters(), lr=1e-3)
@@ -154,4 +153,4 @@ train_model(model, dataloader, optimizer, num_epochs, device)
 # Example decoding
 encoded_word = "ZQFAQ LA"
 decoded_word = decode_word(model, encoded_word, dataset.char_encoder, device)
-print(f"Encoded: {encoded_word}, Decoded: {decoded_word}", flush=True)
+print(f"Encoded: {encoded_word}, Decoded: {decoded_word}")
