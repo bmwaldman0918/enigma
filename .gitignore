@@ -1,6 +1,7 @@
 compress.py
 random_data.json
 random_data.gz
+model_old.pkl
 .history/
 # Byte-compiled / optimized / DLL files
 __pycache__/
