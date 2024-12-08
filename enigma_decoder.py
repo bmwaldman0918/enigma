@@ -42,7 +42,7 @@ class EnigmaDataset(Dataset):
         self.data = ""
         with open(file_path, 'r') as f:
             try:
-              self.data = json.load(f)
+                self.data = json.load(f)
             except Exception as e:
                 print(f"{e}", flush=True)
 
@@ -156,8 +156,8 @@ def collate_fn(batch):
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
 print("Dataset and DataLoader ready.", flush=True)
 
-# Model, optimizer, and training
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Set device to CPU
+device = torch.device("cpu")
 print(f"Using device: {device}", flush=True)
 model = ResNetDecoder(vocab_size=dataset.vocab_size, embed_dim=embed_dim, hidden_dim=hidden_dim, num_blocks=num_blocks, max_length=max_length).to(device)
 optimizer = Adam(model.parameters(), lr=1e-3)
