@@ -13,14 +13,14 @@ import matplotlib.pyplot as plt
 # Dataset class
 class EnigmaDataset(Dataset):
     def __init__(self, file_path):
-        self.data = []
+        self.data = ""
         with open(file_path, 'r') as f:
             for i, line in enumerate(f, 1):
                 try:
-                    self.data.append(json.loads(line))
+                    self.data += line
                 except json.JSONDecodeError as e:
                     print(f"Error parsing JSON on line {i}: {e}")
-        
+        self.data = json.loads(self.data)
         all_characters = set("".join([item['plain'] + item['encoded'] for item in self.data]))
         self.char_encoder = LabelEncoder()
         self.char_encoder.fit(list(all_characters))
