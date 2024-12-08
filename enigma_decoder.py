@@ -102,7 +102,7 @@ class ResNetDecoder(nn.Module):
         return logits
 
 # Training loop
-def train_model(model, dataloader, optimizer, num_epochs, device):
+def train_model(model, dataloader, optimizer, num_epochs):
     print("Starting training loop...", flush=True)
     model.train()
     for epoch in range(num_epochs):
@@ -111,8 +111,6 @@ def train_model(model, dataloader, optimizer, num_epochs, device):
         for batch_idx, (encoded, plain) in enumerate(dataloader):
             if batch_idx % max(1, len(dataloader) // 10) == 0:  # Print updates 10 times per epoch
                 print(f"Processing batch {batch_idx+1}/{len(dataloader)}...", flush=True)
-            encoded = encoded.to(device)
-            plain = plain.to(device)
             logits = model(encoded)
             logits = logits.view(-1, logits.size(-1))
             plain = plain.view(-1)
@@ -124,14 +122,14 @@ def train_model(model, dataloader, optimizer, num_epochs, device):
         print(f"Epoch {epoch+1}/{num_epochs} completed. Loss: {total_loss / len(dataloader):.4f}", flush=True)
 
 # Decode function
-def decode_word(model, encoded_word, char_encoder, device):
+def decode_word(model, encoded_word, char_encoder):
     print(f"Decoding word: {encoded_word}", flush=True)
     model.eval()
     with torch.no_grad():
         encoded_ids = np.array(char_encoder.transform(list(encoded_word.replace(" ", ""))))
-        input_tensor = torch.tensor(encoded_ids[np.newaxis, :], dtype=torch.long).to(device)
+        input_tensor = torch.tensor(encoded_ids[np.newaxis, :], dtype=torch.long)
         logits = model(input_tensor)
-        predictions = torch.argmax(logits, dim=-1).squeeze(0).cpu().numpy()
+        predictions = torch.argmax(logits, dim=-1).squeeze(0).numpy()
         decoded_word = "".join(char_encoder.inverse_transform(predictions))
     print(f"Decoded word: {decoded_word}", flush=True)
     return decoded_word
@@ -156,18 +154,16 @@ def collate_fn(batch):
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
 print("Dataset and DataLoader ready.", flush=True)
 
-# Set device to CPU
-device = torch.device("cpu")
-print(f"Using device: {device}", flush=True)
-model = ResNetDecoder(vocab_size=dataset.vocab_size, embed_dim=embed_dim, hidden_dim=hidden_dim, num_blocks=num_blocks, max_length=max_length).to(device)
+# Initialize model and optimizer
+model = ResNetDecoder(vocab_size=dataset.vocab_size, embed_dim=embed_dim, hidden_dim=hidden_dim, num_blocks=num_blocks, max_length=max_length)
 optimizer = Adam(model.parameters(), lr=1e-3)
 
 # Train the model
-train_model(model, dataloader, optimizer, num_epochs, device)
+train_model(model, dataloader, optimizer, num_epochs)
 
 # Example decoding
 encoded_word = "ZQFAQ LA"
-decoded_word = decode_word(model, encoded_word, dataset.char_encoder, device)
+decoded_word = decode_word(model, encoded_word, dataset.char_encoder)
 print(f"Encoded: {encoded_word}, Decoded: {decoded_word}", flush=True)
 
 with open('rnnmodel.pkl', 'wb') as f:
