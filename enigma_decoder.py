@@ -9,6 +9,7 @@ from torch.optim import Adam
 from torch.nn.utils.rnn import pad_sequence
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+import pickle
 
 # Dataset class
 class EnigmaDataset(Dataset):
@@ -38,14 +39,15 @@ class EnigmaDataset(Dataset):
 
     def _load_dataset(self, file_path):
         """Helper function to load the dataset from a file."""
-        self.data = []
+        self.data = ""
         with open(file_path, 'r') as f:
             for i, line in enumerate(f, 1):
                 print(f"Processing line {i}...", flush=True)
-                try:
-                    self.data.append(json.loads(line))
-                except json.JSONDecodeError as e:
-                    print(f"Error parsing JSON on line {i}: {e}", flush=True)
+                self.data += line
+        try:
+            self.data = json.loads(self.data)
+        except json.JSONDecodeError as e:
+            print(f"Error parsing JSON on line {i}: {e}", flush=True)
 
     def __len__(self):
         return len(self.data)
@@ -138,7 +140,7 @@ def decode_word(model, encoded_word, char_encoder, device):
     return decoded_word
 
 # Parameters
-file_path = "/home/smadejski/mathforml/enigma/random_data.json"
+file_path = "scraped_data.json"
 batch_size = 16
 embed_dim = 64
 hidden_dim = 64
@@ -170,3 +172,6 @@ train_model(model, dataloader, optimizer, num_epochs, device)
 encoded_word = "ZQFAQ LA"
 decoded_word = decode_word(model, encoded_word, dataset.char_encoder, device)
 print(f"Encoded: {encoded_word}, Decoded: {decoded_word}", flush=True)
+
+with open('rnnmodel.pkl', 'wb') as f:
+    pickle.dump(model, f)
