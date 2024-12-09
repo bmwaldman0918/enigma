@@ -7,7 +7,7 @@ MAX_STR_LEN = 25
 
 def pad(s : str, l: int = MAX_STR_LEN) -> str:
   if len(s) > l:
-    return s[l]
+    return s[:l]
   return s.ljust(l)
 
 BEN_LAPTOP_DRIVER_PATH = "C:\\Users\\bmwal_sbkb7fk\\chromedriver-win64"
