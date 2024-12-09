@@ -43,7 +43,7 @@ def random_data_gen(strs : int):
   use_these = [("I", "A"), ("II", "B"), ("III", "C")]
   encoded = encode_strings(words, catalog="default", stecker="AQ BJ",rotors=use_these, reflector="Reflector B", operator=True, word_length=5, stator="military")
   with open("random_data.json", mode="a") as file:
-    file.write(json.dumps(encoded, indent="\t") + ",")
+    file.write(json.dumps(encoded, indent="\t"))
     file.close()
 
 def scraped_data_gen(urls : dict, driver):
@@ -69,6 +69,4 @@ urls["obama"] = "https://en.wikipedia.org/wiki/Barack_Obama"
 urls["churchill"] = "https://en.wikipedia.org/wiki/Winston_Churchill"
 urls["ovechkin"] = "https://en.wikipedia.org/wiki/Alexander_Ovechkin"
 #scraped_data_gen(urls, d)
-for i in range(1000):
-  random_data_gen(int(10e3))
-  print(i)
+random_data_gen(int(10e4))
