@@ -101,10 +101,12 @@ class ResNetDecoder(nn.Module):
         logits = self.fc(out)
         return logits
 
-# Training loop
+# Training loop with loss tracking
 def train_model(model, dataloader, optimizer, num_epochs):
     print("Starting training loop...", flush=True)
     model.train()
+    training_losses = []  # Track training loss for each epoch
+
     for epoch in range(num_epochs):
         print(f"Epoch {epoch+1}/{num_epochs} started...", flush=True)
         total_loss = 0
@@ -119,7 +121,13 @@ def train_model(model, dataloader, optimizer, num_epochs):
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-        print(f"Epoch {epoch+1}/{num_epochs} completed. Loss: {total_loss / len(dataloader):.4f}", flush=True)
+
+        # Calculate average loss for this epoch
+        avg_loss = total_loss / len(dataloader)
+        training_losses.append(avg_loss)
+        print(f"Epoch {epoch+1}/{num_epochs} completed. Loss: {avg_loss:.4f}", flush=True)
+
+    return training_losses
 
 # Decode function
 def decode_word(model, encoded_word, char_encoder):
@@ -133,38 +141,62 @@ def decode_word(model, encoded_word, char_encoder):
         decoded_word = "".join(char_encoder.inverse_transform(predictions))
     print(f"Decoded word: {decoded_word}", flush=True)
     return decoded_word
+
+# Plot loss
+def plot_loss_curve(training_losses, validation_losses, save_path=None):
+    epochs = range(1, len(training_losses) + 1)
+    plt.figure(figsize=(8, 6))
+    plt.plot(epochs, training_losses, label="Training Loss", marker='o')
+    plt.plot(epochs, validation_losses, label="Validation Loss", marker='x')
+    plt.title("Loss Curve")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.grid(True)
+    if save_path is None:
+        save_path = os.path.join(os.getcwd(), "loss_curve.png")
+    plt.savefig(save_path)
+
 if __name__ == "__main__":
-  # Parameters
-  file_path = "random_data.json"
-  batch_size = 16
-  embed_dim = 64
-  hidden_dim = 64
-  num_blocks = 3
-  num_epochs = 15
-  max_length = 25
+    # Parameters
+    file_path = "random_data.json"
+    batch_size = 16
+    embed_dim = 64
+    hidden_dim = 64
+    num_blocks = 3
+    num_epochs = 15
+    max_length = 25
 
-  # Dataset and DataLoader
-  print("Initializing Dataset and DataLoader...", flush=True)
-  dataset = EnigmaDataset(file_path)
-  def collate_fn(batch):
-      encoded, plain = zip(*batch)
-      encoded_padded = pad_sequence(encoded, batch_first=True, padding_value=0)
-      plain_padded = pad_sequence(plain, batch_first=True, padding_value=0)
-      return encoded_padded, plain_padded
-  dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-  print("Dataset and DataLoader ready.", flush=True)
+    # Dataset and DataLoader
+    print("Initializing Dataset and DataLoader...", flush=True)
+    dataset = EnigmaDataset(file_path)
 
-  # Initialize model and optimizer
-  model = ResNetDecoder(vocab_size=dataset.vocab_size, embed_dim=embed_dim, hidden_dim=hidden_dim, num_blocks=num_blocks, max_length=max_length)
-  optimizer = Adam(model.parameters(), lr=1e-3)
+    def collate_fn(batch):
+        encoded, plain = zip(*batch)
+        encoded_padded = pad_sequence(encoded, batch_first=True, padding_value=0)
+        plain_padded = pad_sequence(plain, batch_first=True, padding_value=0)
+        return encoded_padded, plain_padded
 
-  # Train the model
-  train_model(model, dataloader, optimizer, num_epochs)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+    print("Dataset and DataLoader ready.", flush=True)
 
-  # Example decoding
-  encoded_word = "ZQFAQ LA"
-  decoded_word = decode_word(model, encoded_word, dataset.char_encoder)
-  print(f"Encoded: {encoded_word}, Decoded: {decoded_word}", flush=True)
+    # Initialize model and optimizer
+    model = ResNetDecoder(vocab_size=dataset.vocab_size, embed_dim=embed_dim, hidden_dim=hidden_dim, num_blocks=num_blocks, max_length=max_length)
+    optimizer = Adam(model.parameters(), lr=1e-3)
 
-  with open('rnnmodel_large_random.pkl', 'wb') as f:
-      pickle.dump(model, f)
+    # Train the model and collect losses
+    training_losses = train_model(model, dataloader, optimizer, num_epochs)
+
+    # Plot the loss curve
+    print("Plotting loss curve...", flush=True)
+    plot_loss_curve(training_losses, validation_losses=[], save_path="loss_curve.png")
+    print(f"Loss curve saved to loss_curve.png", flush=True)
+
+    # Example decoding
+    encoded_word = "ZQFAQ LA"
+    decoded_word = decode_word(model, encoded_word, dataset.char_encoder)
+    print(f"Encoded: {encoded_word}, Decoded: {decoded_word}", flush=True)
+
+    # Save the model
+    with open('rnnmodel_large_random.pkl', 'wb') as f:
+        pickle.dump(model, f)
