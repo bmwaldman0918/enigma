@@ -16,6 +16,7 @@ class EnigmaDataset(Dataset):
     def __init__(self, file_path):
         print("Initializing EnigmaDataset...", flush=True)
         self.data = None
+        self.test = None
         max_retries = 5  # Maximum number of retry attempts
 
         for attempt in range(1, max_retries + 1):
@@ -42,7 +43,9 @@ class EnigmaDataset(Dataset):
         self.data = ""
         with open(file_path, 'r') as f:
             try:
-                self.data = json.load(f)
+                all = json.load(f)
+                self.data = all[:2 * len(all)//3]
+                self.test = all[2 * len(all)//3:]
             except Exception as e:
                 print(f"{e}", flush=True)
 
@@ -148,13 +151,13 @@ def plot_loss_curve(training_losses, validation_losses, save_path=None):
     plt.figure(figsize=(8, 6))
     plt.plot(epochs, training_losses, label="Training Loss", marker='o')
     plt.plot(epochs, validation_losses, label="Validation Loss", marker='x')
-    plt.title("Loss Curve")
+    plt.title("Loss Curve for Scraped Data")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.legend()
     plt.grid(True)
     if save_path is None:
-        save_path = os.path.join(os.getcwd(), "loss_curve.png")
+        save_path = os.path.join(os.getcwd(), "loss_curve_scraped.png")
     plt.savefig(save_path)
 
 if __name__ == "__main__":
@@ -187,16 +190,21 @@ if __name__ == "__main__":
     # Train the model and collect losses
     training_losses = train_model(model, dataloader, optimizer, num_epochs)
 
-    # Plot the loss curve
-    print("Plotting loss curve...", flush=True)
-    plot_loss_curve(training_losses, validation_losses=[], save_path="loss_curve.png")
-    print(f"Loss curve saved to loss_curve.png", flush=True)
-
-    # Example decoding
-    encoded_word = "ZQFAQ LA"
-    decoded_word = decode_word(model, encoded_word, dataset.char_encoder)
-    print(f"Encoded: {encoded_word}, Decoded: {decoded_word}", flush=True)
-
+    # Testing
+    correct, incorrect = 0, 0
+    for row in dataset.test:
+      try:
+        plain = row["plain"]
+        encoded = row["encoded"]
+        decoded_word = decode_word(model, encoded, dataset.char_encoder)
+        if plain.strip() == decoded_word.strip():
+          correct += 1
+        else:
+          incorrect += 1
+        print(f"Encoded: {encoded.strip()}, Decoded: {decoded_word.strip()}, Correct: {plain.strip()}", flush=True)
+      except Exception:
+          continue
     # Save the model
-    with open('rnnmodel_large_random.pkl', 'wb') as f:
+    print(correct / (correct + incorrect))
+    with open('rnnmodel_scraped.pkl', 'wb') as f:
         pickle.dump(model, f)
